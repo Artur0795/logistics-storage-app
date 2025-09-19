@@ -7,7 +7,7 @@ const AdminPanel = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    API.get('/users/')
+    API.get('/users/', { withCredentials: true })
       .then(res => setUsers(res.data))
       .catch(err => {
         setError(

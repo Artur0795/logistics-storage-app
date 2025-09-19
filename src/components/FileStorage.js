@@ -2,12 +2,41 @@ import React, { useEffect, useState } from 'react';
 import API from '../api';
 import { useParams } from 'react-router-dom';
 
+const Toast = ({ message, onClose }) => (
+  message ? (
+    <div style={{
+      position: 'fixed',
+      top: 20,
+      right: 20,
+      background: '#1976d2',
+      color: '#fff',
+      padding: '14px 28px',
+      borderRadius: 8,
+      boxShadow: '0 2px 12px rgba(33,150,243,0.18)',
+      zIndex: 9999,
+      fontSize: '1.1rem'
+    }}>
+      {message}
+      <button style={{
+        marginLeft: 16,
+        background: 'transparent',
+        border: 'none',
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: '1.2rem',
+        cursor: 'pointer'
+      }} onClick={onClose}>×</button>
+    </div>
+  ) : null
+);
+
 const FileStorage = ({ isAdmin }) => {
   const { userId } = useParams(); 
   const [files, setFiles] = useState([]);
   const [comment, setComment] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [error, setError] = useState('');
+  const [toastMsg, setToastMsg] = useState('');
 
   useEffect(() => {
     API.get(userId ? `/files/${userId}/` : '/files/me/')
@@ -40,7 +69,7 @@ const FileStorage = ({ isAdmin }) => {
 
   const handleCopyLink = (url) => {
     navigator.clipboard.writeText(url);
-    alert('Ссылка скопирована!');
+    setToastMsg('Ссылка скопирована!');
   };
 
   const handleUpload = async (e) => {
@@ -62,6 +91,7 @@ const FileStorage = ({ isAdmin }) => {
 
   return (
     <div className="file-storage">
+      <Toast message={toastMsg || error} onClose={() => { setToastMsg(''); setError(''); }} />
       <h2>Файловое хранилище</h2>
       {error && <div className="auth-error">{error}</div>}
       <form onSubmit={handleUpload}>

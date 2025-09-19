@@ -4,7 +4,7 @@ import uuid
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.hashers import make_password
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import User, UserFile
-from .serializers import LoginSerializer, UserListSerializer
+from .serializers import LoginSerializer
 
 User = get_user_model()
 
@@ -32,8 +32,20 @@ def user_list(request):
         return Response({"error": "Доступ запрещён"}, status=403)
 
     users = User.objects.all()
-    serializer = UserListSerializer(users, many=True)
-    return Response(serializer.data)
+    users_data = []
+    for user in users:
+        file_count = user.files.count()
+        file_size = round(sum(f.size for f in user.files.all()) / (1024 * 1024), 2)
+        users_data.append({
+            "id": user.id,
+            "username": user.username,
+            "full_name": user.full_name,
+            "email": user.email,
+            "is_admin": user.is_admin,
+            "file_count": file_count,
+            "file_size": file_size,
+        })
+    return Response(users_data)
 
 
 @api_view(['DELETE'])
@@ -46,6 +58,19 @@ def delete_user(request, user_id):
         user = User.objects.get(id=user_id)
         if user == request.user:
             return Response({"error": "Нельзя удалить себя"}, status=400)
+        user_folder = os.path.join(settings.MEDIA_ROOT, user.storage_path)
+        for user_file in user.files.all():
+            file_path = os.path.join(user_folder, user_file.stored_name)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except Exception:
+                    pass
+        try:
+            if os.path.exists(user_folder) and not os.listdir(user_folder):
+                os.rmdir(user_folder)
+        except Exception:
+            pass
         user.delete()
         return Response({"message": "Пользователь удалён"})
     except User.DoesNotExist:
@@ -203,11 +228,11 @@ def file_special_download(request, special_link):
     try:
         user_file = UserFile.objects.get(special_link=special_link)
     except UserFile.DoesNotExist:
-        raise Http404
+        return Response({"error": "Файл не найден"}, status=404)
     user_folder = os.path.join(settings.MEDIA_ROOT, user_file.user.storage_path)
     file_path = os.path.join(user_folder, user_file.stored_name)
     if not os.path.exists(file_path):
-        raise Http404
+        return Response({"error": "Файл не найден на сервере"}, status=404)
     user_file.last_download = timezone.now()
     user_file.save()
     return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=user_file.original_name)

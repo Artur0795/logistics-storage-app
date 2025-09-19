@@ -1,6 +1,34 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import API from '../api';
 
+const Toast = ({ message, onClose }) => (
+  message ? (
+    <div style={{
+      position: 'fixed',
+      top: 20,
+      right: 20,
+      background: '#1976d2',
+      color: '#fff',
+      padding: '14px 28px',
+      borderRadius: 8,
+      boxShadow: '0 2px 12px rgba(33,150,243,0.18)',
+      zIndex: 9999,
+      fontSize: '1.1rem'
+    }}>
+      {message}
+      <button style={{
+        marginLeft: 16,
+        background: 'transparent',
+        border: 'none',
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: '1.2rem',
+        cursor: 'pointer'
+      }} onClick={onClose}>×</button>
+    </div>
+  ) : null
+);
+
 const Dashboard = ({ userId }) => {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -108,13 +136,12 @@ const Dashboard = ({ userId }) => {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
+      <Toast message={message} onClose={() => setMessage('')} />
       <h2>
         {owner
           ? `Файлы пользователя: ${owner.username} (${owner.full_name})`
           : 'Ваши файлы'}
       </h2>
-      {message && <p>{message}</p>}
-      {}
       {!userId && (
         <form onSubmit={handleUpload}>
           <input
