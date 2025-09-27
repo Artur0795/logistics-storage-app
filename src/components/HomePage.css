@@ -40,50 +40,6 @@
   font-size: 1rem;
 }
 
-.homepage-calc {
-  background: #fffde7;
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 32px;
-  box-shadow: 0 2px 8px rgba(251,192,45,0.08);
-}
-
-.calc-form {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
-.calc-input {
-  flex: 1 1 140px;
-  padding: 8px;
-  border: 1px solid #bdbdbd;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.calc-btn {
-  background: #1976d2;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 18px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.calc-btn:hover {
-  background: #1565c0;
-}
-
-.calc-result {
-  color: #388e3c;
-  font-weight: 500;
-  min-height: 24px;
-}
-
 .homepage-nav {
   text-align: center;
   margin-top: 16px;
@@ -505,6 +461,38 @@
   color: #1976d2;
 }
 
+/* Стили для индикаторов слайдов */
+.homepage-slider-indicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+}
+
+.homepage-slider-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.homepage-slider-dot:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.homepage-slider-dot.active {
+  background-color: white;
+  border-color: white;
+  transform: scale(1.2);
+}
+
 .homepage-cards-row {
   display: flex;
   justify-content: center;
@@ -554,4 +542,110 @@
 
 .homepage-card-btn:hover {
   background: linear-gradient(90deg, #1565c0 60%, #fbc02d 100%);
+}
+
+.homepage-footer-link--plain {
+  color: #fffde7;
+  font-weight: 500;
+  font-size: 1.08rem;
+  cursor: default;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .homepage-container {
+    margin: 20px auto;
+    padding: 20px;
+  }
+  
+  .homepage-header h1 {
+    font-size: 2rem;
+  }
+  
+  .homepage-slogan {
+    font-size: 1rem;
+  }
+  
+  .homepage-slider {
+    height: 300px;
+    margin-top: 32px;
+  }
+  
+  .homepage-slider-img {
+    height: 300px;
+  }
+  
+  .homepage-slider-center-text {
+    padding: 20px 30px;
+  }
+  
+  .homepage-slider-center-text h1 {
+    font-size: 2rem;
+  }
+  
+  .homepage-slider-center-text p {
+    font-size: 1.1rem;
+  }
+  
+  .homepage-cards-row {
+    gap: 20px;
+    margin: 20px auto 0 auto;
+    padding: 0 20px;
+  }
+  
+  .homepage-card {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  
+  .homepage-geo-title {
+    margin-left: 20px;
+  }
+  
+  .homepage-geo-title h2 {
+    font-size: 28px;
+  }
+  
+  .homepage-geo-bg {
+    height: 400px;
+  }
+  
+  .homepage-map-wrapper-on-bg {
+    width: 90%;
+    height: 200px;
+  }
+  
+  .homepage-map-city-on-bg {
+    font-size: 8px;
+    padding: 1px 6px 1px 2px;
+  }
+  
+  .homepage-footer-navbar {
+    padding: 12px 20px 8px 20px;
+  }
+  
+  .homepage-footer-links {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .homepage-footer-social {
+    gap: 12px;
+  }
+  
+  .homepage-chat-widget {
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 1.8rem;
+  }
+  
+  .homepage-chat-popup {
+    bottom: 80px;
+    right: 20px;
+    width: calc(100vw - 40px);
+    max-width: 300px;
+  }
 }

@@ -2,6 +2,7 @@
   "name": "logistics-storage-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://logistics-storage-app.ru",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
@@ -18,7 +19,15 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "powershell -ExecutionPolicy Bypass -File deploy.ps1",
+    "deploy-simple": "deploy-simple.bat",
+    "build-deploy": "npm run build && npm run deploy-simple",
+    "full-deploy": "powershell -ExecutionPolicy Bypass -File .\\full-deploy.ps1",
+    "check-connection": ".\\check-connection.bat",
+    "setup-ssh": "setup-ssh.bat",
+    "deploy-manual": "deploy-manual.bat",
+    "deploy-alternative": "npm run build && node deploy-ftp.js"
   },
   "eslintConfig": {
     "extends": [

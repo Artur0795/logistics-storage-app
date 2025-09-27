@@ -105,12 +105,10 @@ npm run build
 ## Примеры команд для деплоя
 
 ```sh
-# Backend
 python manage.py migrate
 python manage.py collectstatic
 gunicorn logistics_backend.wsgi:application
 
-# Frontend
 cd src
 npm install
 npm run build

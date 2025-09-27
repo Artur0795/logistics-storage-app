@@ -14,7 +14,13 @@ const Navbar = ({ isAuthenticated, onLogout }) => (
         {isAuthenticated ? (
           <>
             <Link className="navbar-link" to="/dashboard">Файлы</Link>
-            <button className="navbar-btn" onClick={onLogout}>Выход</button>
+            <button
+              className="navbar-btn"
+              onClick={() => {
+                onLogout();
+                window.location.href = '/'; // обновить страницу и перейти на главную
+              }}
+            >Выход</button>
           </>
         ) : (
           <>

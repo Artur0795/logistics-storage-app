@@ -37,6 +37,9 @@ DATABASES = {
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
+    "http://www.logistics-storage-app.ru",
+    "https://logistics-storage-app.ru",
+    "http://89.111.175.147",
     "http://localhost:3000",
 ]
 
@@ -49,10 +52,11 @@ AUTH_USER_MODEL = 'storage.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ]
 }
 
@@ -84,4 +88,14 @@ TEMPLATES = [
             ],
         },
     },
+]
+
+ALLOWED_HOSTS = [
+    'logistics-storage-app.ru',
+    '89.111.175.147',
+    '0.0.0.0',
+    'localhost',
+    '127.0.0.1',
+    '31.31.196.240',
+    '2a00:f940:2:2:1:1:0:181',
 ]

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css';
 
@@ -27,74 +27,12 @@ const sliderImages = [
   },
 ];
 
-const distances = {
-  'Москва': {
-    'Санкт-Петербург': 710,
-    'Екатеринбург': 1800,
-    'Пермь': 1400,
-    'Казань': 820,
-    'Краснодар': 1350,
-    'Нижний Новгород': 420,
-  },
-  'Санкт-Петербург': {
-    'Москва': 710,
-    'Екатеринбург': 2200,
-    'Пермь': 1800,
-    'Казань': 1500,
-    'Краснодар': 1920,
-    'Нижний Новгород': 1100,
-  },
-  'Екатеринбург': {
-    'Москва': 1800,
-    'Санкт-Петербург': 2200,
-    'Пермь': 360,
-    'Казань': 900,
-    'Краснодар': 2600,
-    'Нижний Новгород': 1400,
-  },
-  'Пермь': {
-    'Москва': 1400,
-    'Санкт-Петербург': 1800,
-    'Екатеринбург': 360,
-    'Казань': 630,
-    'Краснодар': 2100,
-    'Нижний Новгород': 950,
-  },
-  'Казань': {
-    'Москва': 820,
-    'Санкт-Петербург': 1500,
-    'Екатеринбург': 900,
-    'Пермь': 630,
-    'Краснодар': 1700,
-    'Нижний Новгород': 390,
-  },
-  'Краснодар': {
-    'Москва': 1350,
-    'Санкт-Петербург': 1920,
-    'Екатеринбург': 2600,
-    'Пермь': 2100,
-    'Казань': 1700,
-    'Нижний Новгород': 1600,
-  },
-  'Нижний Новгород': {
-    'Москва': 420,
-    'Санкт-Петербург': 1100,
-    'Екатеринбург': 1400,
-    'Пермь': 950,
-    'Казань': 390,
-    'Краснодар': 1600,
-  },
-};
-
 const HomePage = () => {
   const [showChat, setShowChat] = useState(false);
   const [slide, setSlide] = useState(0);
-  const [fromCity, setFromCity] = useState('');
-  const [toCity, setToCity] = useState('');
-  const [volume, setVolume] = useState('');
-  const [vehicle, setVehicle] = useState('gazelle');
-  const [calcResult, setCalcResult] = useState('');
   const [userName, setUserName] = useState('');
+  const [chatForm, setChatForm] = useState({ name: '', message: '' });
+  const [isAutoSliding, setIsAutoSliding] = useState(true);
 
   useEffect(() => {
     const updateUserName = () => {
@@ -106,52 +44,85 @@ const HomePage = () => {
     return () => window.removeEventListener('storage', updateUserName);
   }, []);
 
-  const nextSlide = () => setSlide((slide + 1) % sliderImages.length);
-  const prevSlide = () => setSlide((slide - 1 + sliderImages.length) % sliderImages.length);
+  // Автоматическое переключение слайдов
+  useEffect(() => {
+    if (!isAutoSliding) return;
+    
+    const interval = setInterval(() => {
+      setSlide(prev => (prev + 1) % sliderImages.length);
+    }, 5000);
 
-  const handleCalc = (e) => {
+    return () => clearInterval(interval);
+  }, [isAutoSliding]);
+
+  const nextSlide = useCallback(() => {
+    setIsAutoSliding(false);
+    setSlide((slide + 1) % sliderImages.length);
+    setTimeout(() => setIsAutoSliding(true), 10000); // Возобновить через 10 сек
+  }, [slide]);
+
+  const prevSlide = useCallback(() => {
+    setIsAutoSliding(false);
+    setSlide((slide - 1 + sliderImages.length) % sliderImages.length);
+    setTimeout(() => setIsAutoSliding(true), 10000); // Возобновить через 10 сек
+  }, [slide]);
+
+  const goToSlide = useCallback((index) => {
+    setIsAutoSliding(false);
+    setSlide(index);
+    setTimeout(() => setIsAutoSliding(true), 10000);
+  }, []);
+
+  const handleChatSubmit = (e) => {
     e.preventDefault();
-    if (!fromCity || !toCity || !volume) {
-      setCalcResult('Пожалуйста, выберите оба города и укажите объем.');
-      return;
-    }
-    if (fromCity === toCity) {
-      setCalcResult('Города отправления и назначения должны отличаться.');
-      return;
-    }
-    const dist = distances[fromCity]?.[toCity];
-    if (!dist) {
-      setCalcResult('Нет данных о расстоянии между выбранными городами.');
-      return;
-    }
-    const vol = parseFloat(volume);
-    if (isNaN(vol) || vol <= 0) {
-      setCalcResult('Объем должен быть положительным числом.');
-      return;
-    }
-    const basePrice = vol * 3500;
-    const kmPrice = vehicle === 'gazelle' ? dist * 45 : dist * 70;
-    const total = Math.round(basePrice + kmPrice);
-setCalcResult(
-  <>
-    Расстояние: {dist} км. Стоимость доставки ({vehicle === 'gazelle' ? 'Газель' : 'Камаз'}): {total.toLocaleString()} руб. (Объем: {vol} м³, {vehicle === 'gazelle' ? '45 руб/км' : '70 руб/км'}, 1 м³ = 3500 руб)
-    <br />
-    <br />
-    *Цена указана с учетом НДС 20%, конечная стоимость может отличаться от заявленной в зависимости от дополнительных услуг и условий перевозки, а также от обёма и веса груза. Также возможны скидки при больших объемах перевозок.
-  </>
-);
+    if (!chatForm.name.trim() || !chatForm.message.trim()) return;
+    
+    // Здесь можно добавить логику отправки сообщения на сервер
+    console.log('Отправлено сообщение:', chatForm);
+    alert('Сообщение отправлено! Мы свяжемся с вами в ближайшее время.');
+    setChatForm({ name: '', message: '' });
+    setShowChat(false);
+  };
+
+  const handleChatInputChange = (field, value) => {
+    setChatForm(prev => ({ ...prev, [field]: value }));
   };
 
   return (
     <React.Fragment>
-      <div className="homepage-slider">
+      <div className="homepage-slider" role="banner">
         <img
           src={sliderImages[slide].src}
           alt={sliderImages[slide].alt}
           className="homepage-slider-img"
         />
-        <button className="homepage-slider-btn left" onClick={prevSlide}>&lt;</button>
-        <button className="homepage-slider-btn right" onClick={nextSlide}>&gt;</button>
+        <button 
+          className="homepage-slider-btn left" 
+          onClick={prevSlide}
+          aria-label="Предыдущий слайд"
+        >
+          &lt;
+        </button>
+        <button 
+          className="homepage-slider-btn right" 
+          onClick={nextSlide}
+          aria-label="Следующий слайд"
+        >
+          &gt;
+        </button>
+        
+        {/* Индикаторы слайдов */}
+        <div className="homepage-slider-indicators">
+          {sliderImages.map((_, index) => (
+            <button
+              key={index}
+              className={`homepage-slider-dot ${slide === index ? 'active' : ''}`}
+              onClick={() => goToSlide(index)}
+              aria-label={`Перейти к слайду ${index + 1}`}
+            />
+          ))}
+        </div>
+
         <div className="homepage-slider-center-text">
           <h1>Logistics Storage App</h1>
           <p>Надёжная логистика для отправки грузов по России!</p>
@@ -176,56 +147,11 @@ setCalcResult(
           <h2>О сервисе</h2>
           <p>
             Мы — современная логистическая компания, предоставляющая услуги доставки грузов по России.<br />
-            Рассчитайте стоимость доставки, отслеживайте свои отправления.<br />
+            Отслеживайте свои отправления.<br />
             Для клиентов и администраторов доступны удобные инструменты управления.
           </p>
         </section>
-        <section className="homepage-calc">
-          <h2>Калькулятор стоимости доставки</h2>
-          <form className="calc-form" onSubmit={handleCalc}>
-            <select
-              className="calc-input"
-              value={fromCity}
-              onChange={e => setFromCity(e.target.value)}
-            >
-              <option value="">Город отправления</option>
-              {cities.map(city => (
-                <option key={city.name} value={city.name}>{city.name}</option>
-              ))}
-            </select>
-            <select
-              className="calc-input"
-              value={toCity}
-              onChange={e => setToCity(e.target.value)}
-            >
-              <option value="">Город назначения</option>
-              {cities.map(city => (
-                <option key={city.name} value={city.name}>{city.name}</option>
-              ))}
-            </select>
-            <input
-              type="number"
-              placeholder="Объем (м³)"
-              className="calc-input"
-              min="0"
-              value={volume}
-              onChange={e => setVolume(e.target.value)}
-            />
-            <select
-              className="calc-input"
-              value={vehicle}
-              onChange={e => setVehicle(e.target.value)}
-            >
-              <option value="gazelle">Газель (45 руб/км)</option>
-              <option value="kamaz">Камаз (70 руб/км)</option>
-            </select>
-            <button type="submit" className="calc-btn">Рассчитать</button>
-          </form>
-          <div className="calc-result">
-            {calcResult}
-          </div>
-        </section>
-        <nav className="homepage-nav">
+        <nav className="homepage-nav" role="navigation">
           <Link className="homepage-link" to="/register">Регистрация</Link>
           <span className="homepage-sep">|</span>
           {userName ? (
@@ -266,7 +192,7 @@ setCalcResult(
         </div>
       </div>
 
-      <footer className="homepage-footer-navbar">
+      <footer className="homepage-footer-navbar" role="contentinfo">
         <div className="homepage-footer-links">
         <a href="#about-service" className="homepage-footer-link">О компании</a>
 <span className="homepage-sep">|</span>
@@ -290,22 +216,48 @@ setCalcResult(
       </footer>
 
       {showChat && (
-        <div className="homepage-chat-popup">
+        <div className="homepage-chat-popup" role="dialog" aria-labelledby="chat-title">
           <div className="homepage-chat-header">
-            Онлайн-чат
-            <button className="homepage-chat-close" onClick={() => setShowChat(false)}>×</button>
+            <span id="chat-title">Онлайн-чат</span>
+            <button 
+              className="homepage-chat-close" 
+              onClick={() => setShowChat(false)}
+              aria-label="Закрыть чат"
+            >
+              ×
+            </button>
           </div>
-          <form className="homepage-chat-form">
-            <input type="text" placeholder="Ваше имя" className="homepage-chat-input" />
-            <textarea placeholder="Ваш вопрос..." className="homepage-chat-input" rows={3} />
-            <button type="submit" className="homepage-chat-send-btn">Отправить</button>
+          <form className="homepage-chat-form" onSubmit={handleChatSubmit}>
+            <input 
+              type="text" 
+              placeholder="Ваше имя" 
+              className="homepage-chat-input"
+              value={chatForm.name}
+              onChange={(e) => handleChatInputChange('name', e.target.value)}
+              required
+              aria-label="Ваше имя"
+            />
+            <textarea 
+              placeholder="Ваш вопрос..." 
+              className="homepage-chat-input" 
+              rows={3}
+              value={chatForm.message}
+              onChange={(e) => handleChatInputChange('message', e.target.value)}
+              required
+              aria-label="Ваш вопрос"
+            />
+            <button type="submit" className="homepage-chat-send-btn">
+              Отправить
+            </button>
           </form>
         </div>
       )}
+      
       <button
         className="homepage-chat-widget"
         onClick={() => setShowChat(true)}
         title="Онлайн-чат"
+        aria-label="Открыть чат поддержки"
       >
         💬
       </button>

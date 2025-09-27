@@ -78,14 +78,41 @@ const FileStorage = ({ isAdmin }) => {
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('comment', comment);
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      setError('Вы не авторизованы. Пожалуйста, войдите в систему.');
+      return;
+    }
     try {
-      const res = await API.post('/files/upload/', formData);
-      setFiles([...files, res.data]);
-      setComment('');
-      setSelectedFile(null);
-      setError('');
-    } catch {
-      setError('Ошибка загрузки файла');
+      const res = await API.post('/files/upload/', formData, {
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      // --- изменено: если сервер возвращает только id, запрашиваем список файлов заново ---
+      if (res.data && res.data.id) {
+        // Файл успешно загружен, обновляем список файлов
+        setComment('');
+        setSelectedFile(null);
+        setError('');
+        setToastMsg('Файл успешно загружен');
+        // Перезагрузка списка файлов
+        API.get(userId ? `/files/${userId}/` : '/files/me/')
+          .then(r => setFiles(r.data))
+          .catch(() => setError('Ошибка загрузки файлов'));
+      } else if (res.data && res.data.file) {
+        setFiles([...files, res.data.file]);
+        setComment('');
+        setSelectedFile(null);
+        setError('');
+        setToastMsg('Файл успешно загружен');
+      } else {
+        setError('Неожиданный ответ сервера');
+      }
+    } catch (err) {
+      setError('Ошибка загрузки файла: ' + (err.response?.data?.error || ''));
     }
   };
 

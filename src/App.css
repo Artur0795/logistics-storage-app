@@ -36,3 +36,78 @@
     transform: rotate(360deg);
   }
 }
+
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.auth-container input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.auth-container button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.auth-container button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.error {
+  color: red;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+}
+
+.profile-container {
+  max-width: 1200px;
+  margin: 61px 120px 0 120px;
+  padding: 20px;
+}
+
+.profile-header {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #b9dcff;
+  border-radius: 8px;
+}
+
+.profile-nav {
+  margin-top: 15px;
+}
+
+.profile-nav a, .profile-nav button {
+  margin: 0 10px;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+
+.profile-nav a:hover, .profile-nav button:hover {
+  background-color: #007bff;
+  color: white;
+}

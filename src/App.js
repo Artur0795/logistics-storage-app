@@ -7,8 +7,9 @@ import Login from './components/Login';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import AdminPanel from './components/AdminPanel';
-import ProfilePage from './components/ProfilePage';
+import Profile from './components/Profile';
 import FileStorage from './components/FileStorage';
+import './App.css';
 
 const UserStorage = () => {
   const { userId } = useParams();
@@ -26,18 +27,20 @@ function App() {
 
   return (
     <Router>
-      <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/storage/:userId" element={<UserStorage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/files/:userId" element={<FileStorage isAdmin={isAdmin} />} />
-        <Route path="/files/me" element={<FileStorage isAdmin={isAdmin} />} />
-      </Routes>
+      <div className="App">
+        <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/storage/:userId" element={<UserStorage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/files/:userId" element={<FileStorage isAdmin={isAdmin} />} />
+          <Route path="/files/me" element={<FileStorage isAdmin={isAdmin} />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
