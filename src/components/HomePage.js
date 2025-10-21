@@ -44,7 +44,6 @@ const HomePage = () => {
     return () => window.removeEventListener('storage', updateUserName);
   }, []);
 
-  // Автоматическое переключение слайдов
   useEffect(() => {
     if (!isAutoSliding) return;
     
@@ -58,13 +57,13 @@ const HomePage = () => {
   const nextSlide = useCallback(() => {
     setIsAutoSliding(false);
     setSlide((slide + 1) % sliderImages.length);
-    setTimeout(() => setIsAutoSliding(true), 10000); // Возобновить через 10 сек
+    setTimeout(() => setIsAutoSliding(true), 10000);
   }, [slide]);
 
   const prevSlide = useCallback(() => {
     setIsAutoSliding(false);
     setSlide((slide - 1 + sliderImages.length) % sliderImages.length);
-    setTimeout(() => setIsAutoSliding(true), 10000); // Возобновить через 10 сек
+    setTimeout(() => setIsAutoSliding(true), 10000);
   }, [slide]);
 
   const goToSlide = useCallback((index) => {
@@ -77,7 +76,6 @@ const HomePage = () => {
     e.preventDefault();
     if (!chatForm.name.trim() || !chatForm.message.trim()) return;
     
-    // Здесь можно добавить логику отправки сообщения на сервер
     console.log('Отправлено сообщение:', chatForm);
     alert('Сообщение отправлено! Мы свяжемся с вами в ближайшее время.');
     setChatForm({ name: '', message: '' });
@@ -151,15 +149,6 @@ const HomePage = () => {
             Для клиентов и администраторов доступны удобные инструменты управления.
           </p>
         </section>
-        <nav className="homepage-nav" role="navigation">
-          <Link className="homepage-link" to="/register">Регистрация</Link>
-          <span className="homepage-sep">|</span>
-          {userName ? (
-            <Link className="homepage-link" to="/profile">{userName}</Link>
-          ) : (
-            <Link className="homepage-link" to="/login">Вход</Link>
-          )}
-        </nav>
       </div>
 
       <div className="homepage-geo-section">

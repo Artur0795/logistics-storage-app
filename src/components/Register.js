@@ -27,7 +27,6 @@ const Register = () => {
 
     const { username, full_name, email, password, confirmPassword } = formData;
 
-    // Проверка заполнения всех полей
     if (!username.trim() || !full_name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Все поля должны быть заполнены');
       return;
@@ -40,7 +39,6 @@ const Register = () => {
 
     setLoading(true);
 
-    // Отладочные логи
     console.log('Отправляемые данные:', {
       username: username.trim(),
       full_name: full_name.trim(),
@@ -67,7 +65,6 @@ const Register = () => {
         confirmPassword: ''
       });
       
-      // Перенаправляем на страницу входа через 2 секунды
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -77,7 +74,6 @@ const Register = () => {
       console.error('Ответ сервера:', error.response?.data);
 
       if (error.response?.data?.details) {
-        // Подробные ошибки валидации
         const details = error.response.data.details;
         let errorMessages = [];
 

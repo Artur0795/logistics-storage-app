@@ -88,17 +88,13 @@ const FileStorage = ({ isAdmin }) => {
       const res = await API.post('/files/upload/', formData, {
         headers: {
           'Authorization': 'Bearer ' + token,
-          'Content-Type': 'multipart/form-data'
         }
       });
-      // --- изменено: если сервер возвращает только id, запрашиваем список файлов заново ---
       if (res.data && res.data.id) {
-        // Файл успешно загружен, обновляем список файлов
         setComment('');
         setSelectedFile(null);
         setError('');
         setToastMsg('Файл успешно загружен');
-        // Перезагрузка списка файлов
         API.get(userId ? `/files/${userId}/` : '/files/me/')
           .then(r => setFiles(r.data))
           .catch(() => setError('Ошибка загрузки файлов'));

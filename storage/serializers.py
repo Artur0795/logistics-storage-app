@@ -83,7 +83,6 @@ class RegisterSerializer(serializers.ModelSerializer):
                 password=validated_data['password']
             )
             
-            # Устанавливаем full_name
             if hasattr(user, 'full_name'):
                 user.full_name = full_name
             
@@ -210,8 +209,7 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
-        # Обновление профиля (без пароля)
-        validated_data.pop('password', None)  # Не обновляем пароль через этот метод
+        validated_data.pop('password', None)
         
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

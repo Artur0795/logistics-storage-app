@@ -11,6 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -137,30 +138,21 @@ def file_list(request):
     return Response(data)
 
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
 def file_upload(request):
-
-    if not request.user or not request.user.is_authenticated:
-        auth_header = request.META.get('HTTP_AUTHORIZATION')
-        if auth_header and auth_header.startswith('Bearer '):
-            from rest_framework.authtoken.models import Token
-            token_key = auth_header.split('Bearer ')[-1].strip()
-            try:
-                token = Token.objects.get(key=token_key)
-                request.user = token.user
-            except Token.DoesNotExist:
-                return Response({"error": "Неверный токен авторизации"}, status=401)
-        else:
-            return Response({"error": "Нет авторизации"}, status=401)
-
-
     file = request.FILES.get('file')
     comment = request.data.get('comment', '')
     if not file:
         logger.error("Файл не выбран или не передан в запросе")
         return Response({"error": "Файл не выбран"}, status=400)
+
+    if not hasattr(request.user, 'storage_path') or not request.user.storage_path:
+        logger.error(f"У пользователя {request.user.username} отсутствует storage_path.")
+        return Response({"error": "Ошибка конфигурации пользователя"}, status=500)
+
     stored_name = f"{uuid.uuid4().hex}_{file.name}"
     user_folder = os.path.join(settings.MEDIA_ROOT, request.user.storage_path)
     os.makedirs(user_folder, exist_ok=True)
@@ -176,10 +168,12 @@ def file_upload(request):
             comment=comment,
             size=file.size,
         )
+        return Response({"message": "Файл загружен", "id": user_file.id})
     except Exception as e:
         logger.error(f"Ошибка сохранения файла: {str(e)}")
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return Response({"error": "Ошибка сохранения файла"}, status=500)
-    return Response({"message": "Файл загружен", "id": user_file.id})
 
 
 @api_view(['DELETE'])
@@ -282,17 +276,30 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                user = serializer.save()
-                logger.info(f"User {user.username} registered successfully")
+                storage_path = str(uuid.uuid4())
+                user = serializer.save(storage_path=storage_path)
+
+                from rest_framework.authtoken.models import Token
+                token, _ = Token.objects.get_or_create(user=user)
+
+                user.backend = 'django.contrib.auth.backends.ModelBackend'
+                login(request, user)
+
+                logger.info(f"User {user.username} registered and auto-logged in")
                 return Response({
                     'success': True,
-                    'message': 'Пользователь успешно зарегистрирован'
+                    'message': 'Пользователь успешно зарегистрирован и авторизован',
+                    'is_admin': user.is_admin,
+                    'full_name': user.full_name,
+                    'username': user.username,
+                    'token': token.key
                 }, status=status.HTTP_201_CREATED)
+            except ValidationError as e:
+                logger.error(f"Validation error during user creation: {e.detail}")
+                return Response({'error': e.detail}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
                 logger.error(f"User creation error: {str(e)}")
-                return Response({
-                    'error': 'Ошибка при создании пользователя'
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'error': 'Ошибка при создании пользователя'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             logger.warning(f"Validation errors: {serializer.errors}")
             return Response({
@@ -301,29 +308,42 @@ class RegisterView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        logger.info(f"Login attempt with data: {request.data}")
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
+            logger.warning(f"Login validation failed: {serializer.errors}")
             return Response({'error': 'Invalid data', 'details': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        user = authenticate(
-            username=serializer.validated_data.get('username'),
-            password=serializer.validated_data.get('password')
-        )
+        
+        username = serializer.validated_data.get('username')
+        password = serializer.validated_data.get('password')
+        
+        logger.info(f"Authenticating user: {username}")
+        user = authenticate(username=username, password=password)
+        
         if user and user.is_active:
-            login(request, user)
-            from rest_framework.authtoken.models import Token
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({
-                'success': True,
-                'is_admin': getattr(user, 'is_admin', False),
-                'full_name': getattr(user, 'full_name', ''),
-                'username': user.username,
-                'token': token.key
-            })
+            logger.info(f"User {username} authenticated successfully.")
+            try:
+                from rest_framework.authtoken.models import Token
+                token, _ = Token.objects.get_or_create(user=user)
+                logger.info(f"Token created/retrieved for user {username}.")
+                return Response({
+                    'success': True,
+                    'is_admin': getattr(user, 'is_admin', False),
+                    'full_name': getattr(user, 'full_name', ''),
+                    'username': user.username,
+                    'token': token.key
+                })
+            except Exception as e:
+                logger.error(f"Error during token generation or response for user {username}: {str(e)}")
+                return Response({'error': 'Внутренняя ошибка сервера при входе'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        logger.warning(f"Failed login for user: {username}. User object: {user}")
         return Response({'error': 'Неверный логин или пароль'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -331,8 +351,18 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        try:
+            from rest_framework.authtoken.models import Token
+            token = getattr(request.user, 'auth_token', None)
+            if token:
+                token.delete()
+        except Exception as e:
+            logger.warning(f"Token deletion failed for {request.user.username}: {e}")
+
         logout(request)
-        return Response({'success': True})
+
+        return Response({'success': True, 'message': 'Вы успешно вышли из системы.'})
+
 
 
 @api_view(['GET'])

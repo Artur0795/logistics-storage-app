@@ -461,7 +461,6 @@
   color: #1976d2;
 }
 
-/* Стили для индикаторов слайдов */
 .homepage-slider-indicators {
   position: absolute;
   bottom: 20px;
@@ -551,7 +550,6 @@
   cursor: default;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .homepage-container {
     margin: 20px auto;

@@ -242,10 +242,7 @@ const Dashboard = ({ userId }) => {
     try {
       console.log('Uploading file:', selectedFile.name, selectedFile.size, selectedFile.type);
       const response = await API.post('/files/upload/', formData, {
-        // axios сам добавит нужные заголовки!
       });
-      // Сервер должен проверять права пользователя на загрузку в хранилище.
-      // Если админ, то загружать в любое хранилище, иначе - только в своё
       console.log('Upload response:', response);
       setMessage('Файл успешно загружен');
       setSelectedFile(null);
@@ -271,7 +268,6 @@ const Dashboard = ({ userId }) => {
         } else {
           errorMessage = `Ошибка сервера: ${error.response.status}`;
         }
-        // Выводим тело ответа сервера для диагностики
         console.error('Ответ сервера:', error.response.data);
       } else if (error.request) {
         errorMessage = 'Ошибка соединения с сервером';
@@ -284,7 +280,6 @@ const Dashboard = ({ userId }) => {
   };
 
   const handleDelete = async (fileId) => {
-    // Сервер должен проверять права пользователя на удаление файла
     if (!window.confirm('Удалить файл?')) return;
     try {
       await API.delete(`/files/${fileId}/delete/`);
@@ -296,14 +291,12 @@ const Dashboard = ({ userId }) => {
   };
 
   const handleDownload = async (fileId, originalName) => {
-    // Сервер должен проверять права пользователя на скачивание файла
-    // и отдавать файл с оригинальным именем
     try {
       const res = await API.get(`/files/${fileId}/download/`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', originalName); // оригинальное имя
+      link.setAttribute('download', originalName);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -313,7 +306,6 @@ const Dashboard = ({ userId }) => {
   };
 
   const handleRename = async (fileId) => {
-    // Сервер должен проверять права пользователя на переименование файла
     if (!renameValue.trim()) {
       setMessage('Имя файла не может быть пустым');
       return;
@@ -330,7 +322,6 @@ const Dashboard = ({ userId }) => {
   };
 
   const handleEditComment = async (fileId) => {
-    // Сервер должен проверять права пользователя на изменение комментария
     try {
       await API.post(`/files/${fileId}/comment/`, { comment: editCommentValue.trim() });
       setMessage('Комментарий обновлён');
@@ -343,8 +334,6 @@ const Dashboard = ({ userId }) => {
   };
 
   const handleCopyLink = (specialLink) => {
-    // Специальная ссылка формируется сервером в обезличенном виде
-    // (без user_id, оригинального имени, информации о хранилище)
     const url = `${window.location.origin}/api/files/special/${specialLink}/`;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(() => {
@@ -391,7 +380,7 @@ const Dashboard = ({ userId }) => {
                 type="file"
                 onChange={e => setSelectedFile(e.target.files[0])}
                 disabled={uploadLoading}
-                accept="*/*" // было accept="image/*", теперь любые файлы
+                accept="*/*"
                 style={styles.input}
               />
               <input

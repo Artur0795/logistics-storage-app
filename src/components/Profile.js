@@ -18,7 +18,6 @@ const Profile = () => {
       return;
     }
     
-    // Загружаем профиль пользователя с сервера
     const fetchProfile = async () => {
       try {
         const response = await API.get('/profile/');
@@ -27,7 +26,6 @@ const Profile = () => {
         localStorage.setItem('userName', response.data.full_name || response.data.username);
       } catch (error) {
         console.error('Ошибка загрузки профиля:', error);
-        // Fallback к локальным данным
         const storedName = localStorage.getItem('userName');
         setUserName(storedName || 'Пользователь');
       } finally {

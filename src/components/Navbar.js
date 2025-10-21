@@ -18,7 +18,7 @@ const Navbar = ({ isAuthenticated, onLogout }) => (
               className="navbar-btn"
               onClick={() => {
                 onLogout();
-                window.location.href = '/'; // обновить страницу и перейти на главную
+                window.location.href = '/';
               }}
             >Выход</button>
           </>

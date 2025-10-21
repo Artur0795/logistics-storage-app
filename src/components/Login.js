@@ -18,7 +18,6 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
     setLoading(true);
     setError('');
 
-    // Отладочные логи
     console.log('Отправляемые данные для входа:', formData);
 
     try {
@@ -27,35 +26,28 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
       console.log('Данные ответа сервера:', response.data);
       console.log('Статус ответа:', response.status);
 
-      // Если статус 200, значит авторизация прошла успешно
       if (response.status === 200 && response.data) {
-        // Различные форматы ответа от Django views
         const responseData = response.data;
         
-        // Вариант 1: ответ содержит token напрямую
         if (responseData.token || responseData.access_token || responseData.key) {
           const token = responseData.token || responseData.access_token || responseData.key;
           const userData = responseData.user || responseData;
           const isAdminUser = responseData.is_admin || userData.is_admin || false;
           const userDisplayName = userData.full_name || userData.username || formData.username;
 
-          // Сохраняем данные в localStorage
           localStorage.setItem('token', token);
           localStorage.setItem('userName', userDisplayName);
           localStorage.setItem('userRole', isAdminUser ? 'admin' : 'user');
 
-          // Обновляем состояние приложения
           setIsAuthenticated(true);
           setIsAdmin(isAdminUser);
 
           console.log('Успешная авторизация, перенаправление...');
           
-          // Перенаправляем пользователя
           navigate(isAdminUser ? '/admin' : '/profile');
           return;
         }
         
-        // Вариант 2: ответ содержит success: true
         if (responseData.success === true || responseData.status === 'success') {
           const userData = responseData.user || responseData.data || responseData;
           const isAdminUser = responseData.is_admin || userData.is_admin || false;
@@ -74,7 +66,6 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
           return;
         }
 
-        // Вариант 3: просто данные пользователя без явного success
         if (responseData.username || responseData.id) {
           const userData = responseData;
           const isAdminUser = userData.is_admin || false;
@@ -93,7 +84,6 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
           return;
         }
 
-        // Если ни один вариант не подошел
         console.error('Неожиданный формат ответа от сервера:', responseData);
         setError('Неожиданный формат ответа от сервера');
       } else {
@@ -104,7 +94,6 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
       console.error('Ответ сервера при ошибке:', error.response);
 
       if (error.response?.status === 400) {
-        // 400 статус обычно означает ошибку валидации
         const errorData = error.response.data;
         
         if (errorData.non_field_errors) {
